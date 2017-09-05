@@ -1,0 +1,7 @@
+useDynLib(RNeo4j)
+importFrom(Rcpp, evalCpp)
+
+export(initNeo4j)
+export(cleanupNeo4j)
+export(startGraph)
+export(cypher)

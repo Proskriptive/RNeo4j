@@ -1,0 +1,1 @@
+PKG_LIBS=-lneo4j-client -lssl -lcrypto -lm
