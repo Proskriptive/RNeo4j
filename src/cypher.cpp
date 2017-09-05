@@ -71,6 +71,8 @@ DataFrame cypherInternal(SEXP graphSexp, const char* query, List args, StringVec
                 char* buf = (char*) malloc(len);
                 neo4j_string_value(item, buf, len);
                 resultRow[c] = std::string(buf);
+                // std::string copies
+                free(buf);
             } else if (type == NEO4J_INT) {
                 resultRow[c] = neo4j_int_value(item);
             } else if (type == NEO4J_FLOAT) {
