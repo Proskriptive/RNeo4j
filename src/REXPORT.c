@@ -5,3 +5,5 @@
 
 extern SEXP rustr_open_graph_internal(SEXP uri, SEXP username, SEXP password);
 SEXP RNeo4j_open_graph_internal(SEXP uri, SEXP username, SEXP password){ return(rustr_open_graph_internal(uri,username,password));}
+extern SEXP rustr_query_graph_internal(SEXP graph, SEXP query, SEXP params);
+SEXP RNeo4j_query_graph_internal(SEXP graph, SEXP query, SEXP params){ return(rustr_query_graph_internal(graph,query,params));}

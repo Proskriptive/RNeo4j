@@ -2,3 +2,5 @@
 
 
 open_graph_internal = function(uri,username,password){ .Call('RNeo4j_open_graph_internal',PACKAGE = 'RNeo4j', uri,username,password)}
+
+query_graph_internal = function(graph,query,params){ .Call('RNeo4j_query_graph_internal',PACKAGE = 'RNeo4j', graph,query,params)}

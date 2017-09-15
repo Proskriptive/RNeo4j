@@ -1,9 +1,11 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 
 use rustr::*;
 use errno::errno;
 
 use bindings::*;
+use value::Value;
+use result_stream::ResultStream;
 
 pub struct Graph {
     ptr: *mut neo4j_connection_t,
@@ -31,6 +33,16 @@ impl Graph {
             Ok(Graph {
                 ptr: ptr,
             })
+        }
+    }
+
+    pub fn query<'a>(&'a mut self, query: CString, params: Value) -> RResult<ResultStream<'a>> {
+        unsafe {
+            let stream = neo4j_run(self.ptr, query.as_ptr(), params.inner);
+            if stream.is_null() {
+                stop!("Failed to run query: {}", errno());
+            }
+            Ok(ResultStream::from_c_ty(stream, query, params.store))
         }
     }
 }
