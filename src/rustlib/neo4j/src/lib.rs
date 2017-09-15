@@ -17,3 +17,6 @@ pub mod result_stream;
 pub use result_stream::ResultStream;
 pub mod graph;
 pub use graph::Graph;
+
+#[cfg(test)]
+mod tests;

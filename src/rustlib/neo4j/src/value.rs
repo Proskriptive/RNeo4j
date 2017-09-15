@@ -70,6 +70,15 @@ impl Value {
         }
     }
 
+    pub fn null() -> Value {
+        unsafe {
+            Value {
+                inner: neo4j_null,
+                store: None,
+            }
+        }
+    }
+
     pub fn from_string(value: String) -> Value {
         unsafe {
             Value {
