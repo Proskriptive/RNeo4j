@@ -13,6 +13,62 @@ pub struct QueryResult<'a> {
     phantom: PhantomData<&'a ()>,
 }
 
+pub struct QueryResultIter<'a> {
+    inner: *mut neo4j_result_t,
+    i: usize,
+    len: usize,
+    _dropper: Option<QueryResult<'a>>,
+    phantom: PhantomData<&'a ()>,
+}
+
+impl<'a> QueryResultIter<'a> {
+    fn new(res: &'a QueryResult<'a>) -> QueryResultIter<'a> {
+        QueryResultIter {
+            inner: res.inner,
+            i: 0,
+            len: res.len,
+            _dropper: None,
+            phantom: PhantomData,
+        }
+    }
+
+    fn new_owned(res: QueryResult<'a>) -> QueryResultIter<'a> {
+        QueryResultIter {
+            inner: res.inner,
+            i: 0,
+            len: res.len,
+            _dropper: Some(res),
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<'a> Iterator for QueryResultIter<'a> {
+    type Item = ValueRef<'a>;
+
+    fn next(&mut self) -> Option<ValueRef<'a>> {
+        if self.i >= self.len {
+            return None;
+        }
+        let item = unsafe {
+            Some(ValueRef::from_c_ty(neo4j_result_field(self.inner, self.i as _)))
+        };
+        self.i += 1;
+        item
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let left = self.len();
+        (left, Some(left))
+    }
+}
+
+impl<'a> ExactSizeIterator for QueryResultIter<'a> {
+    fn len(&self) -> usize {
+        self.len.saturating_sub(self.i)
+    }
+}
+
 impl<'a> QueryResult<'a> {
     fn from_c_ty(value: *mut neo4j_result_t, len: usize) -> QueryResult<'a> {
         unsafe {
@@ -29,10 +85,26 @@ impl<'a> QueryResult<'a> {
         self.len
     }
 
-    pub fn index<'b: 'a>(&'b self, idx: u32) -> ValueRef<'b> {
-        unsafe {
-            ValueRef::from_c_ty(neo4j_result_field(self.inner, idx))
+    pub fn get(&'a self, idx: u32) -> Option<ValueRef<'a>> {
+        if idx as usize >= self.len {
+            return None;
         }
+        unsafe {
+            Some(ValueRef::from_c_ty(neo4j_result_field(self.inner, idx)))
+        }
+    }
+
+    pub fn iter(&'a self) -> QueryResultIter<'a> {
+        QueryResultIter::new(self)
+    }
+}
+
+impl<'a> IntoIterator for QueryResult<'a> {
+    type Item = ValueRef<'a>;
+    type IntoIter = QueryResultIter<'a>;
+
+    fn into_iter(self) -> QueryResultIter<'a> {
+        QueryResultIter::new_owned(self)
     }
 }
 

@@ -29,6 +29,21 @@ impl<'a> ValueRef<'a> {
             ValueRef::from_c_ty(neo4j_ustring(value.as_ptr() as _, value.len() as _))
         }
     }
+
+    pub fn null() -> ValueRef<'static> {
+        unsafe {
+            ValueRef {
+                inner: neo4j_null,
+                phantom: PhantomData,
+            }
+        }
+    }
+
+    pub fn typestr(&self) -> &'static CStr {
+        unsafe {
+            CStr::from_ptr(neo4j_typestr(neo4j_type(self.inner)))
+        }
+    }
 }
 
 impl<'a> IntoR for ValueRef<'a> {
@@ -58,7 +73,7 @@ impl<'a> IntoR for ValueRef<'a> {
                 }
                 rlist.intor()
             } else {
-                stop!("Cannot convert Neo4j type to R type: {}", ty)
+                stop!("Cannot convert Neo4j type to R type: {}", self.typestr().to_string_lossy())
             }
         }
     }
@@ -111,13 +126,11 @@ impl Value {
     }
 
     pub fn typestr(&self) -> &'static CStr {
-        unsafe {
-            CStr::from_ptr(neo4j_typestr(neo4j_type(self.inner)))
-        }
+        self.borrow().typestr()
     }
 }
 
-impl fmt::Display for Value {
+impl<'a> fmt::Display for ValueRef<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut buf = vec![0u8; 64];
         unsafe {
@@ -131,6 +144,12 @@ impl fmt::Display for Value {
         }
         assert_eq!(buf.pop(), Some(0));
         write!(f, "{}", CString::new(buf).map_err(|_| fmt::Error)?.into_string().map_err(|_| fmt::Error)?)
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.borrow().fmt(f)
     }
 }
 

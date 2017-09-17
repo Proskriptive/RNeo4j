@@ -2,3 +2,4 @@ useDynLib(RNeo4j)
 
 export(startGraph)
 export(cypher)
+export(cypherToList)

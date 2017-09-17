@@ -18,14 +18,16 @@ let password_ : CString = unwrapr!( CString::rnew(password) );
 }
 
 #[no_mangle]
-pub extern "C" fn rustr_query_graph_internal(graph : SEXP, query : SEXP, params : SEXP)->SEXP{
+pub extern "C" fn rustr_query_graph_internal(graph : SEXP, query : SEXP, params : SEXP, as_data_frame : SEXP)->SEXP{
 
  let graph_ : RPtr<Graph> = unwrapr!( RPtr::rnew(graph) );
 
 let query_ : CString = unwrapr!( CString::rnew(query) );
 
 let params_ : Value = unwrapr!( Value::rnew(params) );
- let res  = unwrapr!( query_graph_internal(graph_,query_,params_));
+
+let as_data_frame_ : bool = unwrapr!( bool::rnew(as_data_frame) );
+ let res  = unwrapr!( query_graph_internal(graph_,query_,params_,as_data_frame_));
 
  let res_sexp : SEXP = unwrapr!(res.intor());
 

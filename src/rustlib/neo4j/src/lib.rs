@@ -12,7 +12,7 @@ extern crate errno;
 
 #[macro_use] pub mod utils;
 pub mod value;
-pub use value::Value;
+pub use value::{Value, ValueRef};
 pub mod result_stream;
 pub use result_stream::ResultStream;
 pub mod graph;
