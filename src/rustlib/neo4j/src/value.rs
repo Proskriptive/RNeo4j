@@ -1,4 +1,4 @@
-use std::{slice, str, fmt};
+use std::{slice, str, fmt, ptr};
 use std::any::Any;
 use std::marker::PhantomData;
 use std::ffi::{CStr, CString};
@@ -170,15 +170,17 @@ impl From<CString> for Value {
     }
 }
 
-fn maybe_vec<T: Into<Value>>(r: SEXP) -> Option<Value> 
+fn into_type<T: Into<Value>>(r: SEXP) -> RResult<Value>
     where Vec<T>: RNew
 {
-    let rvec = match Vec::<T>::rnew(r) {
-        Ok(x) => x,
-        Err(_) => return None,
-    };
-    if rvec.len() <= 1 {
-        return None;
+    let mut rvec = Vec::<T>::rnew(r)?;
+    if rvec.len() == 0 {
+        unsafe {
+            return Ok(Value::from_c_ty(neo4j_list(ptr::null(), 0)));
+        }
+    }
+    if rvec.len() == 1 {
+        return Ok(rvec.pop().unwrap().into());
     }
     let mut store: Vec<Box<Any>> = Vec::new();
     let mut items: Vec<neo4j_value_t> = Vec::new();
@@ -191,7 +193,7 @@ fn maybe_vec<T: Into<Value>>(r: SEXP) -> Option<Value>
     }
     let list = unsafe { neo4j_list(items.as_ptr(), items.len() as _) };
     store.push(Box::new(items) as Box<Any>);
-    Some(Value {
+    Ok(Value {
         inner: list,
         store: Some(Box::new(store) as Box<Any>),
     })
@@ -201,23 +203,16 @@ impl RNew for Value {
     fn rnew(r: SEXP) -> RResult<Value> {
         unsafe {
             let rty = RTYPEOF(r);
-            let maybe_list = maybe_vec::<f32>(r)
-                .or_else(|| maybe_vec::<i32>(r))
-                .or_else(|| maybe_vec::<bool>(r))
-                .or_else(|| maybe_vec::<String>(r));
-            if let Some(list) = maybe_list {
-                return Ok(list);
-            }
             if rty == NILSXP {
                 Ok(Value::from_c_ty(neo4j_null))
             } else if rty == LGLSXP {
-                Ok(bool::rnew(r)?.into())
+                into_type::<bool>(r)
             } else if rty == INTSXP {
-                Ok(i64::rnew(r)?.into())
+                into_type::<i64>(r)
             } else if rty == REALSXP {
-                Ok(f64::rnew(r)?.into())
+                into_type::<f64>(r)
             } else if rty == STRSXP {
-                Ok(String::rnew(r)?.into())
+                into_type::<String>(r)
             } else if rty == VECSXP {
                 let list = RList::rnew(r)?;
                 let names = RName::get_name::<Vec<CString>>(&list)?;
