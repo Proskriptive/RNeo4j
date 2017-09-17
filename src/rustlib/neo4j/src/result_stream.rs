@@ -116,11 +116,10 @@ impl<'a> Drop for QueryResult<'a> {
     }
 }
 
-#[allow(dead_code)] // for param_store Drop
 pub struct ResultStream<'a> {
     pub(crate) inner: *mut neo4j_result_stream_t,
-    param_store: Option<Box<Any>>,
-    query: CString,
+    _param_store: Option<Box<Any>>,
+    _query: CString,
     phantom: PhantomData<&'a ()>,
 }
 
@@ -129,8 +128,8 @@ impl<'a> ResultStream<'a> {
         ResultStream {
             inner: value,
             phantom: PhantomData,
-            query: query,
-            param_store: store,
+            _query: query,
+            _param_store: store,
         }
     }
 
