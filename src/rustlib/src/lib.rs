@@ -40,6 +40,9 @@ pub fn query_graph_internal(graph: RPtr<Graph>, query: CString, params: Value, a
             let mut data = RList::alloc(results.len());
             for (x, result) in results.iter().enumerate() {
                 let field = result.get(y).unwrap_or(ValueRef::null());
+                if !field.is_r_primitive() {
+                    stop!("You must query for tabular results when using this function.");
+                }
                 data.set(x, field.intor()?)?;
             }
             out.set(y as _, data)?;

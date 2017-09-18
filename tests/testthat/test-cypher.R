@@ -66,7 +66,6 @@ test_that("cypher won't return graph results - paths", {
 })
 
 test_that("cypher won't return graph results - nodes", {
-  skip("not yet implemented: nodes")
   q = "MATCH (n) WITH n LIMIT 2 RETURN n.name, n"
   expect_error(cypher(neo4j, q), "You must query for tabular results when using this function.")
   q = "MATCH (n) WITH n LIMIT 2 RETURN n, n.name"

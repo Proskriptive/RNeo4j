@@ -39,6 +39,15 @@ impl<'a> ValueRef<'a> {
         }
     }
 
+    pub fn is_r_primitive(&self) -> bool {
+        unsafe {
+            let ty = neo4j_type(self.inner);
+            ty == NEO4J_NULL || ty == NEO4J_BOOL ||
+                ty == NEO4J_INT || ty == NEO4J_FLOAT ||
+                ty == NEO4J_STRING || ty == NEO4J_LIST
+        }
+    }
+
     pub fn typestr(&self) -> &'static CStr {
         unsafe {
             CStr::from_ptr(neo4j_typestr(neo4j_type(self.inner)))
@@ -65,6 +74,24 @@ impl<'a> IntoR for ValueRef<'a> {
                     neo4j_string_length(value) as usize
                 );
                 str::from_utf8_unchecked(s).intor()
+            } else if ty == NEO4J_NODE {
+                let properties = neo4j_node_properties(value);
+                let len = neo4j_map_size(properties);
+                let mut rlist = RList::alloc(len as _);
+                let mut names = CharVec::alloc(len as _);
+                for i in 0..len {
+                    let entry = neo4j_map_getentry(properties, i);
+                    let key = (*entry).key;
+                    let value = (*entry).value;
+                    let key_slice = slice::from_raw_parts(
+                        neo4j_ustring_value(key) as *const u8,
+                        neo4j_string_length(key) as usize
+                    );
+                    names.set(i as _, str::from_utf8_unchecked(key_slice))?;
+                    rlist.set(i as _, ValueRef::from_c_ty(value).intor()?)?;
+                }
+                rlist.set_name(&names)?;
+                rlist.intor()
             } else if ty == NEO4J_LIST {
                 let len = neo4j_list_length(value) as usize;
                 let mut rlist = RList::alloc(len);
