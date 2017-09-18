@@ -123,6 +123,30 @@ pub struct ResultStream<'a> {
     phantom: PhantomData<&'a ()>,
 }
 
+pub struct ResultStreamFieldIter<'a> {
+    inner: *mut neo4j_result_stream_t,
+    i: usize,
+    phantom: PhantomData<&'a ()>,
+}
+
+impl<'a> Iterator for ResultStreamFieldIter<'a> {
+    type Item = RResult<&'a CStr>;
+
+    fn next(&mut self) -> Option<RResult<&'a CStr>> {
+        unsafe {
+            if self.i >= (neo4j_nfields(self.inner) as _) {
+                return None;
+            }
+            let ptr = neo4j_fieldname(self.inner, self.i as _);
+            if ptr.is_null() {
+                stop!("Failed to get fieldname: {}", errno());
+            }
+            self.i += 1;
+            Some(Ok(CStr::from_ptr(ptr)))
+        }
+    }
+}
+
 impl<'a> ResultStream<'a> {
     pub(crate) unsafe fn from_c_ty(value: *mut neo4j_result_stream_t, query: CString, store: Option<Box<Any>>) -> ResultStream<'a> {
         ResultStream {
@@ -139,14 +163,22 @@ impl<'a> ResultStream<'a> {
 
     pub fn fieldname(&self, i: u32) -> RResult<&CStr> {
         unsafe {
-            if i > self.nfields() {
+            if i >= self.nfields() {
                 stop!("Tried to get fieldname of nonexistant field")
             }
             let ptr = neo4j_fieldname(self.inner, i);
             if ptr.is_null() {
-                stop!("Failed to get fieldname: {}", errno())
+                stop!("Failed to get fieldname: {}", errno());
             }
             Ok(CStr::from_ptr(ptr))
+        }
+    }
+
+    pub fn fields_iter(&'a self) -> ResultStreamFieldIter<'a> {
+        ResultStreamFieldIter {
+            inner: self.inner,
+            i: 0,
+            phantom: PhantomData,
         }
     }
 }

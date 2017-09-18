@@ -24,11 +24,11 @@ pub fn query_graph_internal(graph: RPtr<Graph>, query: CString, params: Value, a
     let result_stream = graph.query(query, params)?;
     let nfields = result_stream.nfields();
     let mut fieldnames = CharVec::alloc(nfields as _);
-    for i in 0..nfields {
-        let s = result_stream.fieldname(i)?;
-        let s = match s.to_str() {
+    for (i, f) in result_stream.fields_iter().enumerate() {
+        let f = f?;
+        let s = match f.to_str() {
             Ok(x) => x,
-            Err(_) => stop!("Invalid UTF-8 in Neo4J field name: {:?}", s.to_bytes()),
+            Err(_) => stop!("Invalid UTF-8 in Neo4J field name: {:?}", f.to_bytes()),
         };
         fieldnames.set(i as _, s)?;
     }
