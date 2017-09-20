@@ -1,8 +1,14 @@
-startGraph <- function(uri, username = "", password = "") {
-    open_graph_internal(uri, username, password)
+startGraph <- function(uri, username = "", password = "") UseMethod("startGraph")
+
+startGraph.default <- function(uri, username = "", password = "") {
+    graph = open_graph_internal(uri, username, password)
+    class(graph) <- "graph"
+    graph
 }
 
-cypher <- function(graph, query, ...) {
+cypher <- function(graph, query, ...) UseMethod("cypher")
+
+cypher.graph <- function(graph, query, ...) {
     params = parseParams(...)
 
     df = query_graph_internal(graph, query, params, TRUE)
@@ -26,7 +32,9 @@ cypher <- function(graph, query, ...) {
     df
 }
 
-cypherToList <- function (graph, query, ...) {
+cypherToList <- function (graph, query, ...) UseMethod("cypherToList")
+
+cypherToList.graph <- function (graph, query, ...) {
     params = parseParams(...)
 
     list = query_graph_internal(graph, query, params, FALSE)

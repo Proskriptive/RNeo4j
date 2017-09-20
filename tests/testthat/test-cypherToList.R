@@ -24,7 +24,6 @@ test_that("multiple properties are retrieved", {
 })
 
 test_that("nodes and properties are retrieved", {
-  skip("not yet implemented: nodes")
   query = "MATCH (p:Person) RETURN p, p.name LIMIT 5"
   response = cypherToList(neo4j, query)
   
@@ -44,7 +43,7 @@ test_that("relationships and properties are retrieved", {
 })
 
 test_that("nodes and relationships are retrieved", {
-  skip("not yet implemented: nodes, relationships")
+  skip("not yet implemented: relationships")
   query = "MATCH (p:Person)-[r:ACTED_IN]->(:Movie) RETURN p, r LIMIT 5"
   response = cypherToList(neo4j, query)
   
@@ -64,7 +63,7 @@ test_that("paths and properties are retrieved", {
 })
 
 test_that("paths and nodes are retrieved", {
-  skip("not yet implemented: nodes")
+  skip("not yet implemented: paths")
   query = "MATCH x = (p:Person)-[:ACTED_IN]->(:Movie) RETURN x, p LIMIT 5"
   response = cypherToList(neo4j, query)
   
@@ -74,7 +73,7 @@ test_that("paths and nodes are retrieved", {
 })
 
 test_that("paths and relationships are retrieved", {
-  skip("not yet implemented: relationships")
+  skip("not yet implemented: paths and relationships")
   query = "MATCH x = (:Person)-[r:ACTED_IN]->(:Movie) RETURN x, r LIMIT 5"
   response = cypherToList(neo4j, query)
   
@@ -84,7 +83,6 @@ test_that("paths and relationships are retrieved", {
 })
 
 test_that("collections of properties are retrieved", {
-  skip("not yet implemented: nodes")
   query = "
   MATCH (p:Person)-[:ACTED_IN]->(m:Movie)
   RETURN m, COLLECT(p.name) AS actors
@@ -99,7 +97,6 @@ test_that("collections of properties are retrieved", {
 })
 
 test_that("collections of nodes are retrieved", {
-  skip("not yet implemented: nodes")
   query = "MATCH (p:Person)-[:ACTED_IN]->(m:Movie) RETURN p, COLLECT(m) AS movies LIMIT 5"
   response = cypherToList(neo4j, query)
   
@@ -109,7 +106,6 @@ test_that("collections of nodes are retrieved", {
 })
 
 test_that("it works with parameters", {
-  skip("not yet implemented: nodes")
   query = "
   MATCH (n) RETURN n LIMIT {limit}
   "
@@ -119,7 +115,6 @@ test_that("it works with parameters", {
 })
 
 test_that("it works with multiple parameters", {
-  skip("not yet implemented: nodes")
   query = "
   MATCH (n) RETURN n SKIP {skip} LIMIT {limit}
   "
@@ -129,7 +124,6 @@ test_that("it works with multiple parameters", {
 })
 
 test_that("it works with a list of parameters", {
-  skip("not yet implemented: nodes")
   query = "
   MATCH (n) RETURN n SKIP {skip} LIMIT {limit}
   "
@@ -139,7 +133,6 @@ test_that("it works with a list of parameters", {
 })
 
 test_that("it can return nodes with empty collections as properties", {
-  skip("not yet implemented: nodes")
   clear(neo4j, input=F)
   
   cypherToList(neo4j, 'CREATE (n:test {a:[]})')

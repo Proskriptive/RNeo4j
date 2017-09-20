@@ -44,7 +44,8 @@ impl<'a> ValueRef<'a> {
             let ty = neo4j_type(self.inner);
             ty == NEO4J_NULL || ty == NEO4J_BOOL ||
                 ty == NEO4J_INT || ty == NEO4J_FLOAT ||
-                ty == NEO4J_STRING || ty == NEO4J_LIST
+                ty == NEO4J_STRING || ty == NEO4J_LIST ||
+                ty == NEO4J_MAP
         }
     }
 
@@ -91,6 +92,7 @@ impl<'a> IntoR for ValueRef<'a> {
                     rlist.set(i as _, ValueRef::from_c_ty(value).intor()?)?;
                 }
                 rlist.set_name(&names)?;
+                rlist.set_attr::<_, _, Preserve>("class", "node".intor()?);
                 rlist.intor()
             } else if ty == NEO4J_LIST {
                 let len = neo4j_list_length(value) as usize;
