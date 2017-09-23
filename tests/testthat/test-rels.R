@@ -38,6 +38,8 @@ test_that("getSingleRel works with parameters", {
 })
 
 test_that("startNode works", {
+  # n is node, mugshots is boltNode
+  skip_on_bolt(neo4j, "relationships")
   n = startNode(rel)
   x = class(n)
   expect_true("node" %in% x)
@@ -45,6 +47,7 @@ test_that("startNode works", {
 })
 
 test_that("endNode works", {
+  skip_on_bolt(neo4j, "relationships")
   n = endNode(rel)
   x = class(n)
   expect_true("node" %in% x)
